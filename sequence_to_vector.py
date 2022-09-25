@@ -83,7 +83,14 @@ class DanSequenceToVector(SequenceToVector):
     def __init__(self, input_dim: int, num_layers: int, dropout: float = 0.2, device = 'cpu'):
         super(DanSequenceToVector, self).__init__(input_dim)
         # TODO(students): start
-        
+        self.dropout = dropout
+        # Create the layers with ReLU activation.
+        layers = [
+            nn.Linear(input_dim, input_dim),
+            nn.ReLU()
+        ] * (num_layers - 1)
+        layers.append(nn.Linear(input_dim, input_dim))
+        self.layers = nn.Sequential(*layers)
         # TODO(students): end
 
     def forward(self,
@@ -91,7 +98,15 @@ class DanSequenceToVector(SequenceToVector):
              sequence_mask: torch.Tensor,
              training=False) -> torch.Tensor:
         # TODO(students): start
-        
+        # TODO: Store the layer representations.
+        masked_sequence = vector_sequence * sequence_mask.unsqueeze(2)
+        if training:
+            r_w = torch.distributions.bernoulli.Bernoulli(self.dropout)
+            dropout_mask = r_w.sample(vector_sequence.shape[:2])
+            masked_sequence *= dropout_mask.unsqueeze(2)
+        avg = masked_sequence.mean(dim=1)
+        combined_vector = self.layers(avg)
+        layer_representations = []
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
@@ -114,7 +129,11 @@ class GruSequenceToVector(SequenceToVector):
     def __init__(self, input_dim: int, num_layers: int, device = 'cpu'):
         super(GruSequenceToVector, self).__init__(input_dim)
         # TODO(students): start
-        
+        self.layers = nn.GRU(
+            input_size=input_dim,
+            hidden_size=input_dim,
+            num_layers=num_layers
+        )
         # TODO(students): end
 
     def forward(self,
