@@ -132,7 +132,8 @@ class GruSequenceToVector(SequenceToVector):
         self.layers = nn.GRU(
             input_size=input_dim,
             hidden_size=input_dim,
-            num_layers=num_layers
+            num_layers=num_layers,
+            batch_first=True
         )
         # TODO(students): end
 
@@ -141,7 +142,19 @@ class GruSequenceToVector(SequenceToVector):
              sequence_mask: torch.Tensor,
              training=False) -> torch.Tensor:
         # TODO(students): start
-        
+        # TODO: Properly store layer representations.
+        masked_sequence = vector_sequence * sequence_mask.unsqueeze(2)
+        packed_sequence = nn.utils.rnn.pack_padded_sequence(
+            masked_sequence,
+            sequence_mask.sum(axis=1),
+            batch_first=True,
+            enforce_sorted=False
+        )
+        packed_output, layer_representations = self.layers(packed_sequence)
+        unpacked_output, lengths = nn.utils.rnn.pad_packed_sequence(
+            packed_output, batch_first=True
+        )
+        combined_vector = unpacked_output[:, lengths - 1][:, 0]
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
