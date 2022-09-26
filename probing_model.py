@@ -43,7 +43,7 @@ class ProbingClassifier(nn.Module):
         self.device = device
 
         # TODO(students): start
-        
+       	self.layers = nn.Linear(input_dim, classes_num)
         # TODO(students): end
 
     def forward(self, inputs: torch.Tensor, training: bool = False) -> torch.Tensor:
@@ -64,6 +64,11 @@ class ProbingClassifier(nn.Module):
             only be applied during training.
         """
         # TODO(students): start
-        
+        logits = self.layers(
+            self._pretrained_model(
+                inputs,
+                training
+            )["layer_representations"][self._layer_num]
+        )
         # TODO(students): end
         return {"logits": logits}

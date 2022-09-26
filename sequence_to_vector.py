@@ -84,13 +84,8 @@ class DanSequenceToVector(SequenceToVector):
         super(DanSequenceToVector, self).__init__(input_dim)
         # TODO(students): start
         self.dropout = dropout
-        # Create the layers with ReLU activation.
-        layers = [
-            nn.Linear(input_dim, input_dim),
-            nn.ReLU()
-        ] * (num_layers - 1)
-        layers.append(nn.Linear(input_dim, input_dim))
-        self.layers = nn.Sequential(*layers)
+        # Create the linear layers.
+        self.layers = nn.ModuleList([nn.Linear(input_dim, input_dim)] * num_layers)
         # TODO(students): end
 
     def forward(self,
@@ -98,15 +93,20 @@ class DanSequenceToVector(SequenceToVector):
              sequence_mask: torch.Tensor,
              training=False) -> torch.Tensor:
         # TODO(students): start
-        # TODO: Store the layer representations.
         masked_sequence = vector_sequence * sequence_mask.unsqueeze(2)
         if training:
-            r_w = torch.distributions.bernoulli.Bernoulli(self.dropout)
+            r_w = torch.distributions.bernoulli.Bernoulli(1 - self.dropout)
             dropout_mask = r_w.sample(vector_sequence.shape[:2])
             masked_sequence *= dropout_mask.unsqueeze(2)
         avg = masked_sequence.mean(dim=1)
-        combined_vector = self.layers(avg)
         layer_representations = []
+        for idx, layer in enumerate(self.layers):
+            avg = layer(avg)
+            if idx < len(self.layers) - 1:
+                avg = nn.ReLU()(avg)
+            layer_representations.append(avg)
+        layer_representations = torch.stack(layer_representations)
+        combined_vector = layer_representations[-1]
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
@@ -152,11 +152,6 @@ class GruSequenceToVector(SequenceToVector):
         )
         packed_output, layer_representations = self.layers(packed_sequence)
         combined_vector = layer_representations[-1]
-        #  unpacked_output, lengths = nn.utils.rnn.pad_packed_sequence(
-        #      packed_output, batch_first=True
-        #  )
-        #  combined_vector = unpacked_output[:, 0]
-        #  combined_vector = unpacked_output[:, lengths - 1][:, 0]
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
