@@ -151,10 +151,12 @@ class GruSequenceToVector(SequenceToVector):
             enforce_sorted=False
         )
         packed_output, layer_representations = self.layers(packed_sequence)
-        unpacked_output, lengths = nn.utils.rnn.pad_packed_sequence(
-            packed_output, batch_first=True
-        )
-        combined_vector = unpacked_output[:, lengths - 1][:, 0]
+        combined_vector = layer_representations[-1]
+        #  unpacked_output, lengths = nn.utils.rnn.pad_packed_sequence(
+        #      packed_output, batch_first=True
+        #  )
+        #  combined_vector = unpacked_output[:, 0]
+        #  combined_vector = unpacked_output[:, lengths - 1][:, 0]
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
