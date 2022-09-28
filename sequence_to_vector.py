@@ -84,7 +84,6 @@ class DanSequenceToVector(SequenceToVector):
         super(DanSequenceToVector, self).__init__(input_dim)
         # TODO(students): start
         self.dropout = dropout
-        # Create the linear layers.
         self.layers = nn.ModuleList([nn.Linear(input_dim, input_dim)] * num_layers)
         # TODO(students): end
 
@@ -142,7 +141,6 @@ class GruSequenceToVector(SequenceToVector):
              sequence_mask: torch.Tensor,
              training=False) -> torch.Tensor:
         # TODO(students): start
-        # TODO: Properly store layer representations.
         masked_sequence = vector_sequence * sequence_mask.unsqueeze(2)
         packed_sequence = nn.utils.rnn.pack_padded_sequence(
             masked_sequence,
