@@ -1,3 +1,4 @@
 data/glove.*
 __pycache__/
-serialization_dirs/
+serialization_dirs.*/
+scratch.sh
