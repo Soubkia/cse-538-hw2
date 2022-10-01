@@ -68,7 +68,7 @@ class ProbingClassifier(nn.Module):
             self._pretrained_model(
                 inputs,
                 training
-            )["layer_representations"][self._layer_num - 1]
+            )["layer_representations"][:, self._layer_num - 1]
         )
         # TODO(students): end
         return {"logits": logits}

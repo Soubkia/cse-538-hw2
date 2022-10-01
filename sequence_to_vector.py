@@ -106,6 +106,7 @@ class DanSequenceToVector(SequenceToVector):
             layer_representations.append(avg)
         layer_representations = torch.stack(layer_representations)
         combined_vector = layer_representations[-1]
+        layer_representations = layer_representations.transpose(0, 1)
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
@@ -150,6 +151,7 @@ class GruSequenceToVector(SequenceToVector):
         )
         packed_output, layer_representations = self.layers(packed_sequence)
         combined_vector = layer_representations[-1]
+        layer_representations = layer_representations.transpose(0, 1)
         # TODO(students): end
         return {"combined_vector": combined_vector,
                 "layer_representations": layer_representations}
